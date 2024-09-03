@@ -1,0 +1,49 @@
+/* Estilo para o corpo da página para centralizar o conteúdo */
+body {
+    display: flex;
+    justify-content: center; /* Alinhamento horizontal centralizado */
+    align-items: center; /* Alinhamento vertical centralizado */
+    height: 100vh; /* Altura total da viewport */
+    margin: 0; /* Remove margens padrão */
+    background-color: #333; /* Cor de fundo para um contraste melhor */
+  }
+  
+  /* Container centralizado */
+  .container {
+    max-width: 600px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Estilo para o título */
+  .title {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 2.5rem;
+    color: #333;
+  }
+  
+  /* Estilo para o item da sanfona (accordion) */
+  .accordion-item {
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+  
+  /* Estilo para o cabeçalho da sanfona (accordion) */
+  .accordion-header {
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #444;
+  }
+  
+  /* Estilo para o conteúdo da sanfona (accordion) */
+  .accordion-content {
+    padding: 10px 16px;
+    font-size: 1rem;
+    color: #666;
+  }
+  
