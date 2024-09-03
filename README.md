@@ -19,8 +19,8 @@
 
 O projeto está hospedado da seguinte forma:
 
-- **Front-End:** [Vercel](https://vercel.com) - URL do Projeto: [https://seuprojeto.vercel.app](https://seuprojeto.vercel.app)
-- **Back-End:** [Render](https://render.com) - URL da API: [https://seuservico.onrender.com](https://seuservico.onrender.com)
+- **Front-End:** [Vercel](https://vercel.com) - URL do Projeto: [https://seuprojeto.vercel.app]()
+- **Back-End:** [Render](https://render.com) - URL da API: [https://seuservico.onrender.com]()
 
 ## 📋 Pré-requisitos
 
