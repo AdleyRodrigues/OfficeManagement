@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, MenuItem, Typography, Container, Box } from '@mui/material';
 import axios from 'axios'; // Adicione a importação do axios
-
-
+import "./AddOficio.css";
 
 // A página de adicionar ofício não precisa mais do JSON local, pois os dados agora são enviados para o backend
 const AddOficio: React.FC = () => {
@@ -31,7 +30,7 @@ const AddOficio: React.FC = () => {
   return (
     <Container className="container" maxWidth="sm">
       <Box my={4}>
-        <Typography variant="h4" align="center" gutterBottom>
+        <Typography className="title" variant="h4" align="center" gutterBottom>
           Adicionar Ofício
         </Typography>
         <TextField
