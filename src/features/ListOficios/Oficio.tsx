@@ -32,7 +32,7 @@ interface Oficio {
   destinatario: string;
   cidade: string;
   utilizado: boolean;
-  tags?: string[]; // Corrigido para indicar que tags é um array de strings
+  tags?: string[];
 }
 
 const Oficio: React.FC = () => {
@@ -48,7 +48,10 @@ const Oficio: React.FC = () => {
       const response = await axios.get('http://localhost:3001/api/oficios');
       const formattedOficios = response.data.map((oficio: Oficio) => ({
         ...oficio,
-        tags: typeof oficio.tags === 'string' ? (oficio.tags.split(',').map((tag: string) => tag.trim()) as string[]) : oficio.tags,
+        // Garante que 'tags' seja tratada como string antes de usar 'split'
+        tags: typeof oficio.tags === 'string'
+          ? (oficio.tags as string).split(',').map((tag) => tag.trim())
+          : oficio.tags,
       }));
       setOficios(formattedOficios);
       setFilteredOficios(formattedOficios);
