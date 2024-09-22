@@ -32,15 +32,15 @@ interface Oficio {
   destinatario: string;
   cidade: string;
   utilizado: boolean;
-  tags?: string[];
+  tags?: string[]; // Corrigido para indicar que tags é um array de strings
 }
 
 const Oficio: React.FC = () => {
   const [oficios, setOficios] = useState<Oficio[]>([]);
   const [filteredOficios, setFilteredOficios] = useState<Oficio[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
-  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [yearFilter, setYearFilter] = useState<string>('');
+  const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [selectedOficio, setSelectedOficio] = useState<Oficio | null>(null);
 
   const fetchOficios = async () => {
@@ -48,7 +48,7 @@ const Oficio: React.FC = () => {
       const response = await axios.get('http://localhost:3001/api/oficios');
       const formattedOficios = response.data.map((oficio: Oficio) => ({
         ...oficio,
-        tags: typeof oficio.tags === 'string' ? oficio.tags.split(',').map(tag => tag.trim()) : oficio.tags,
+        tags: typeof oficio.tags === 'string' ? (oficio.tags.split(',').map((tag: string) => tag.trim()) as string[]) : oficio.tags,
       }));
       setOficios(formattedOficios);
       setFilteredOficios(formattedOficios);
@@ -93,12 +93,11 @@ const Oficio: React.FC = () => {
 
   const handleSaveEdit = async () => {
     if (selectedOficio) {
-      // Certifique-se de que os valores de "Ano" e "Utilizado" sejam enviados corretamente
       const updatedOficio = {
         ...selectedOficio,
-        ano: selectedOficio.ano, // Certifique-se de que o ano está correto
-        utilizado: selectedOficio.utilizado, // Certifique-se de que o valor de "utilizado" é booleano
-        tags: selectedOficio.tags?.map((tag) => tag.trim()).filter(tag => tag), // Remove tags vazias
+        ano: selectedOficio.ano,
+        utilizado: selectedOficio.utilizado,
+        tags: selectedOficio.tags?.map((tag: string) => tag.trim()).filter(tag => tag !== ''),
       };
 
       try {
@@ -113,7 +112,6 @@ const Oficio: React.FC = () => {
     }
   };
 
-  // Gera os anos com base no ano atual, dois antes e dois depois
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
@@ -258,10 +256,9 @@ const Oficio: React.FC = () => {
           <TextField
             label="Tags"
             placeholder="Ex: Educação, Eventos"
-            value={selectedOficio?.tags?.join(', ') || ''} // Mostra as tags unidas por vírgulas
+            value={selectedOficio?.tags?.join(', ') || ''}
             onChange={(e) => {
-              // Divide pelo separador de vírgulas, remove espaços em branco e ignora entradas vazias
-              const tagsArray = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+              const tagsArray = e.target.value.split(',').map((tag: string) => tag.trim()).filter(tag => tag !== '');
               setSelectedOficio({
                 ...selectedOficio,
                 tags: tagsArray,
