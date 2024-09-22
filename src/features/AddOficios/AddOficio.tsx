@@ -4,12 +4,12 @@ import axios from 'axios';
 import "./AddOficio.css";
 
 const AddOficio: React.FC = () => {
-  const [ano, setAno] = useState(new Date().getFullYear().toString());
-  const [remetente, setRemetente] = useState('');
-  const [destinatario, setDestinatario] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [utilizado, setUtilizado] = useState(false);
-  const [tags, setTags] = useState('');
+  const [ano, setAno] = useState<string>(new Date().getFullYear().toString());
+  const [remetente, setRemetente] = useState<string>('');
+  const [destinatario, setDestinatario] = useState<string>('');
+  const [cidade, setCidade] = useState<string>('');
+  const [utilizado, setUtilizado] = useState<boolean>(false);
+  const [tags, setTags] = useState<string>(''); // Tags como string
 
   // Função para adicionar um novo ofício
   const handleAddOficio = async () => {
@@ -26,7 +26,7 @@ const AddOficio: React.FC = () => {
         destinatario,
         cidade,
         utilizado,
-        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''), // Convertendo tags em array e removendo entradas vazias
+        tags: tags.split(',').map((tag: string) => tag.trim()).filter(tag => tag !== ''), // Convertendo tags em array e removendo entradas vazias
       });
 
       if (response.status === 201) {
@@ -60,7 +60,7 @@ const AddOficio: React.FC = () => {
             labelId="select-ano-label"
             label="Ano"
             value={ano}
-            onChange={(e) => setAno(e.target.value)}
+            onChange={(e) => setAno(e.target.value as string)}
           >
             {yearOptions.map((anoOption) => (
               <MenuItem key={anoOption} value={anoOption}>
