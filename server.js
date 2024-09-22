@@ -1,128 +1,77 @@
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import cors from 'cors'; // Importa o middleware CORS
-import { fileURLToPath } from 'url';
+import cors from 'cors';
+import pkg from 'pg';
+
+const { Pool } = pkg;
 
 const app = express();
 const PORT = 3001;
 
-// Habilita o CORS para todas as rotas
-app.use(cors());
-
-app.use(express.json());
-
-// Obtenha o caminho do diretório atual usando o método de módulo ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Caminho para o arquivo JSON
-const filePath = path.join(__dirname, 'src', 'data', 'oficios.json');
-
-// Endpoint para adicionar um novo ofício
-app.post('/api/oficios', (req, res) => {
-    const { ano, nome } = req.body;
-
-    if (!ano || !nome) {
-        return res.status(400).send('Ano e nome são obrigatórios.');
-    }
-
-    // Ler o arquivo JSON
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Erro ao ler o arquivo.');
-        }
-
-        // Parseia os dados JSON existentes
-        const oficiosPorAno = JSON.parse(data);
-
-        // Gera um novo ID
-        const newId = Date.now(); // Usar timestamp como ID único
-
-        // Novo ofício a ser adicionado
-        const novoOficio = { id: newId, nome };
-
-        // Adiciona o novo ofício ao ano correspondente
-        if (oficiosPorAno[ano]) {
-            oficiosPorAno[ano].push(novoOficio);
-        } else {
-            oficiosPorAno[ano] = [novoOficio];
-        }
-
-        // Salva os dados atualizados de volta ao arquivo JSON
-        fs.writeFile(filePath, JSON.stringify(oficiosPorAno, null, 2), (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Erro ao escrever no arquivo.');
-            }
-            res.status(200).send('Ofício adicionado com sucesso!');
-        });
-    });
+const pool = new Pool({
+  user: 'adley',
+  host: 'localhost',
+  database: 'oficios_db',
+  password: '123456',
+  port: 5432,
 });
 
-// Endpoint para excluir um ofício
-app.delete('/api/oficios/:ano/:id', (req, res) => {
-    const { ano, id } = req.params;
+app.use(cors());
+app.use(express.json());
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Erro ao ler o arquivo.');
-        }
+// Endpoint para adicionar um novo ofício
+app.post('/api/oficios', async (req, res) => {
+  const { ano, remetente, destinatario, cidade, tags, utilizado } = req.body;
 
-        const oficiosPorAno = JSON.parse(data);
-        if (!oficiosPorAno[ano]) {
-            return res.status(404).send('Ano não encontrado.');
-        }
+  console.log('Dados recebidos no POST:', req.body); // Log para depuração
 
-        // Filtra para remover o ofício com o ID fornecido
-        oficiosPorAno[ano] = oficiosPorAno[ano].filter((oficio) => oficio.id !== parseInt(id));
+  if (!ano || !remetente || !destinatario || !cidade) {
+    return res.status(400).send('Todos os campos obrigatórios devem ser preenchidos.');
+  }
 
-        fs.writeFile(filePath, JSON.stringify(oficiosPorAno, null, 2), (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Erro ao escrever no arquivo.');
-            }
-            res.status(200).send('Ofício excluído com sucesso!');
-        });
-    });
+  try {
+    // Busca o último número de ofício
+    const { rows } = await pool.query('SELECT numero FROM oficios ORDER BY numero DESC LIMIT 1');
+    const ultimoNumero = rows.length > 0 ? rows[0].numero : 0;
+    const novoNumero = ultimoNumero + 1;
+
+    // Insere o novo ofício no banco de dados com o número incrementado
+    await pool.query(
+      'INSERT INTO oficios (numero, ano, remetente, destinatario, cidade, tags, utilizado) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [novoNumero, ano, remetente, destinatario, cidade, tags, utilizado]
+    );
+
+    res.status(201).send('Ofício adicionado com sucesso!');
+  } catch (err) {
+    console.error('Erro ao adicionar o ofício:', err);
+    res.status(500).send('Erro ao adicionar o ofício.');
+  }
 });
 
 // Endpoint para editar um ofício
-app.put('/api/oficios/:ano/:id', (req, res) => {
-    const { ano, id } = req.params;
-    const { nome } = req.body;
+app.put('/api/oficios/:id', async (req, res) => {
+  const { id } = req.params;
+  const { ano, remetente, destinatario, cidade, tags, utilizado } = req.body;
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Erro ao ler o arquivo.');
-        }
+  console.log('Dados recebidos no PUT:', req.body); // Log para depuração
 
-        const oficiosPorAno = JSON.parse(data);
-        if (!oficiosPorAno[ano]) {
-            return res.status(404).send('Ano não encontrado.');
-        }
+  try {
+    // Atualiza todos os campos necessários
+    const { rowCount } = await pool.query(
+      'UPDATE oficios SET ano = $1, remetente = $2, destinatario = $3, cidade = $4, tags = $5::text[], utilizado = $6 WHERE id = $7',
+      [ano, remetente, destinatario, cidade, tags, utilizado, id]
+    );
 
-        const oficioIndex = oficiosPorAno[ano].findIndex((oficio) => oficio.id === parseInt(id));
-        if (oficioIndex === -1) {
-            return res.status(404).send('Ofício não encontrado.');
-        }
+    if (rowCount === 0) {
+      return res.status(404).send('Ofício não encontrado.');
+    }
 
-        oficiosPorAno[ano][oficioIndex].nome = nome;
-
-        fs.writeFile(filePath, JSON.stringify(oficiosPorAno, null, 2), (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Erro ao escrever no arquivo.');
-            }
-            res.status(200).send('Ofício editado com sucesso!');
-        });
-    });
+    res.send('Ofício atualizado com sucesso!');
+  } catch (err) {
+    console.error('Erro ao atualizar o ofício:', err);
+    res.status(500).send('Erro ao atualizar o ofício.');
+  }
 });
 
-
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });

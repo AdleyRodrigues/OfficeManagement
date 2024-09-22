@@ -1,111 +1,303 @@
-import React, { useState } from 'react';
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Button, IconButton, TextField, Box } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import EditIcon from '@mui/icons-material/Edit'; // Ícone de editar
-import DeleteIcon from '@mui/icons-material/Delete'; // Ícone de excluir
-import './Oficio.css'; // Importe o arquivo CSS
-import oficiosPorAno from '../../data/oficios.json'; // Importe o arquivo JSON
-import axios from 'axios'; // Para comunicação com a API
+import React, { useState, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import axios from 'axios';
+import './Oficio.css'; // Importação do estilo atualizado
+
+interface Oficio {
+  id: number;
+  numero: string;
+  ano: string | number;
+  remetente: string;
+  destinatario: string;
+  cidade: string;
+  utilizado: boolean;
+  tags?: string[];
+}
 
 const Oficio: React.FC = () => {
-  const [editingOficio, setEditingOficio] = useState<{ ano: string; id: number; nome: string } | null>(null);
-  const [newName, setNewName] = useState('');
+  const [oficios, setOficios] = useState<Oficio[]>([]);
+  const [filteredOficios, setFilteredOficios] = useState<Oficio[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [selectedOficio, setSelectedOficio] = useState<Oficio | null>(null);
 
-  // Função para excluir um ofício
-  const handleDelete = async (ano: string, id: number) => {
+  const fetchOficios = async () => {
     try {
-      await axios.delete(`http://localhost:3001/api/oficios/${ano}/${id}`);
-      alert('Ofício excluído com sucesso!');
-      window.location.reload(); // Recarrega a página para atualizar a lista
+      const response = await axios.get('http://localhost:3001/api/oficios');
+      const formattedOficios = response.data.map((oficio: Oficio) => ({
+        ...oficio,
+        tags: typeof oficio.tags === 'string' ? oficio.tags.split(',').map(tag => tag.trim()) : oficio.tags,
+      }));
+      setOficios(formattedOficios);
+      setFilteredOficios(formattedOficios);
     } catch (error) {
-      console.error('Erro ao excluir o ofício:', error);
-      alert('Erro ao excluir o ofício.');
+      console.error('Erro ao buscar os ofícios:', error);
+      alert('Erro ao buscar os ofícios.');
     }
   };
 
-  // Função para editar um ofício
-  const handleEdit = (ano: string, id: number, nome: string) => {
-    setEditingOficio({ ano, id, nome });
-    setNewName(nome);
+  useEffect(() => {
+    fetchOficios();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [yearFilter, searchTerm]);
+
+  const applyFilters = () => {
+    let filtered = oficios;
+    if (yearFilter) {
+      filtered = filtered.filter((oficio) => oficio.ano.toString().includes(yearFilter));
+    }
+    if (searchTerm) {
+      filtered = filtered.filter((oficio) =>
+        Object.values(oficio).some((value) =>
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+    setFilteredOficios(filtered);
   };
 
-  // Função para salvar o ofício editado
+  const handleEdit = (oficio: Oficio) => {
+    setSelectedOficio(oficio);
+    setOpenEditDialog(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setSelectedOficio(null);
+  };
+
   const handleSaveEdit = async () => {
-    if (editingOficio) {
+    if (selectedOficio) {
+      // Certifique-se de que os valores de "Ano" e "Utilizado" sejam enviados corretamente
+      const updatedOficio = {
+        ...selectedOficio,
+        ano: selectedOficio.ano, // Certifique-se de que o ano está correto
+        utilizado: selectedOficio.utilizado, // Certifique-se de que o valor de "utilizado" é booleano
+        tags: selectedOficio.tags?.map((tag) => tag.trim()).filter(tag => tag), // Remove tags vazias
+      };
+
       try {
-        await axios.put(`http://localhost:3001/api/oficios/${editingOficio.ano}/${editingOficio.id}`, {
-          nome: newName,
-        });
-        alert('Ofício editado com sucesso!');
-        setEditingOficio(null);
-        setNewName('');
-        window.location.reload(); // Recarrega a página para atualizar a lista
+        await axios.put(`http://localhost:3001/api/oficios/${selectedOficio.id}`, updatedOficio);
+        alert('Ofício atualizado com sucesso!');
+        fetchOficios();
+        handleCloseEditDialog();
       } catch (error) {
-        console.error('Erro ao editar o ofício:', error);
-        alert('Erro ao editar o ofício.');
+        console.error('Erro ao atualizar o ofício:', error);
+        alert('Erro ao atualizar o ofício.');
       }
     }
   };
 
+  // Gera os anos com base no ano atual, dois antes e dois depois
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+
   return (
     <div className="container">
       <h1 className="title">Ofícios</h1>
-      {Object.entries(oficiosPorAno).map(([year, documents]) => (
-        <Accordion className="accordion-item" key={year}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls={`panel-${year}-content`}
-            id={`panel-${year}-header`}
-          >
-            <Typography className="accordion-header">{year}</Typography>
-          </AccordionSummary>
-          <AccordionDetails className="accordion-content">
-            {documents.length > 0 ? (
-              <ul>
-                {documents.map((doc) => (
-                  <li key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    {editingOficio && editingOficio.id === doc.id ? (
-                      <Box display="flex" alignItems="center">
-                        <TextField
-                          value={newName}
-                          onChange={(e) => setNewName(e.target.value)}
-                          size="small"
-                        />
-                        <Button variant="contained" color="primary" onClick={handleSaveEdit}>
-                          Salvar
-                        </Button>
-                        <Button variant="outlined" onClick={() => setEditingOficio(null)}>
-                          Cancelar
-                        </Button>
-                      </Box>
-                    ) : (
-                      <>
-                        <Typography>{doc.nome}</Typography>
-                        <div>
-                          <IconButton
-                            color="primary"
-                            onClick={() => handleEdit(year, doc.id, doc.nome)}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="secondary"
-                            onClick={() => handleDelete(year, doc.id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </div>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Typography>Nenhum ofício encontrado para este ano.</Typography>
-            )}
-          </AccordionDetails>
-        </Accordion>
-      ))}
+
+      <div className="controls">
+        <div className="filters">
+          <TextField
+            label="Pesquisa"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            fullWidth
+          />
+          <FormControl style={{ minWidth: 120 }}>
+            <InputLabel>Ano</InputLabel>
+            <Select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value as string)}
+            >
+              <MenuItem value="">
+                <em>Todos</em>
+              </MenuItem>
+              {Array.from(new Set(oficios.map((oficio) => oficio.ano.toString()))).map((ano) => (
+                <MenuItem key={ano} value={ano}>
+                  {ano}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button variant="contained" color="primary" onClick={applyFilters}>
+            Filtrar
+          </Button>
+        </div>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          href="/add"
+        >
+          Adicionar Ofício
+        </Button>
+      </div>
+
+      <TableContainer component={Paper} className="table-container">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Número do Ofício</TableCell>
+              <TableCell>Ano</TableCell>
+              <TableCell>Remetente</TableCell>
+              <TableCell>Destinatário</TableCell>
+              <TableCell>Cidade</TableCell>
+              <TableCell>Utilizado</TableCell>
+              <TableCell>Tags</TableCell>
+              <TableCell>Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredOficios.map((oficio) => (
+              <TableRow key={oficio.id}>
+                <TableCell>{oficio.numero}</TableCell>
+                <TableCell>{oficio.ano}</TableCell>
+                <TableCell>{oficio.remetente}</TableCell>
+                <TableCell>{oficio.destinatario}</TableCell>
+                <TableCell>{oficio.cidade}</TableCell>
+                <TableCell>{oficio.utilizado ? 'Sim' : 'Não'}</TableCell>
+                <TableCell>{Array.isArray(oficio.tags) ? oficio.tags.join(', ') : ''}</TableCell>
+                <TableCell>
+                  <IconButton color="primary" onClick={() => handleEdit(oficio)}>
+                    <EditIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog
+        open={openEditDialog}
+        onClose={handleCloseEditDialog}
+        aria-labelledby="edit-oficio-title"
+      >
+        <DialogTitle id="edit-oficio-title">Editar Ofício</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="select-ano-label">Ano</InputLabel>
+            <Select
+              labelId="select-ano-label"
+              label="Ano"
+              value={selectedOficio?.ano || ''}
+              onChange={(e) =>
+                setSelectedOficio({ ...selectedOficio, ano: e.target.value } as Oficio)
+              }
+            >
+              {yearOptions.map((ano) => (
+                <MenuItem key={ano} value={ano}>
+                  {ano}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Remetente"
+            value={selectedOficio?.remetente || ''}
+            onChange={(e) =>
+              setSelectedOficio({
+                ...selectedOficio,
+                remetente: e.target.value,
+              } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Destinatário"
+            value={selectedOficio?.destinatario || ''}
+            onChange={(e) =>
+              setSelectedOficio({
+                ...selectedOficio,
+                destinatario: e.target.value,
+              } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Cidade"
+            value={selectedOficio?.cidade || ''}
+            onChange={(e) =>
+              setSelectedOficio({
+                ...selectedOficio,
+                cidade: e.target.value,
+              } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Tags"
+            placeholder="Ex: Educação, Eventos"
+            value={selectedOficio?.tags?.join(', ') || ''} // Mostra as tags unidas por vírgulas
+            onChange={(e) => {
+              // Divide pelo separador de vírgulas, remove espaços em branco e ignora entradas vazias
+              const tagsArray = e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+              setSelectedOficio({
+                ...selectedOficio,
+                tags: tagsArray,
+              } as Oficio);
+            }}
+            fullWidth
+            margin="normal"
+          />
+
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="select-utilizado-label" shrink>Utilizado</InputLabel>
+            <Select
+              labelId="select-utilizado-label"
+              label="Utilizado"
+              value={selectedOficio?.utilizado ? 'Sim' : 'Não'}
+              onChange={(e) =>
+                setSelectedOficio({
+                  ...selectedOficio,
+                  utilizado: e.target.value === 'Sim',
+                } as Oficio)
+              }
+            >
+              <MenuItem value="Sim">Sim</MenuItem>
+              <MenuItem value="Não">Não</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveEdit} color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

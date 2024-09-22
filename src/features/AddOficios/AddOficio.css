@@ -15,7 +15,7 @@ body {
 
 /* Container centralizado */
 .container {
-    max-width: 600px;
+    /* max-width: 600px; */
     padding: 20px;
     background-color: #f5f5f5;
     border-radius: 8px;

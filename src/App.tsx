@@ -2,20 +2,22 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Oficio from './features/ListOficios/Oficio';
 import AddOficio from './features/AddOficios/AddOficio';
+import { Button } from '@mui/material';
 
 const App: React.FC = () => {
   return (
     <Router>
       <div>
         <nav>
-          <ul>
-            <li>
-              <Link to="/">Lista de Ofícios</Link>
-            </li>
-            <li>
-              <Link to="/add">Adicionar Ofício</Link>
-            </li>
-          </ul>
+          <Button
+            variant="contained"
+            color="primary"
+            component={Link}
+            to="/"
+            style={{ margin: '10px' }}
+          >
+            Lista de Ofícios
+          </Button>
         </nav>
         <Routes>
           <Route path="/" element={<Oficio />} />
