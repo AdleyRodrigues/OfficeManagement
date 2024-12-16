@@ -1,0 +1,10 @@
+{
+    "projects": [
+        {
+            "name": "frontend",
+            "root": "frontend",
+            "buildCommand": "yarn install && yarn build",
+            "outputDirectory": "dist"
+        }
+    ]
+}
