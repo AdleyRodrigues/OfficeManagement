@@ -45,9 +45,12 @@ const Oficio: React.FC = () => {
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [selectedOficio, setSelectedOficio] = useState<Oficio | null>(null);
 
+  // Substituir URL hardcoded pelo valor de ambiente
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchOficios = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/oficios');
+      const response = await axios.get(`${API_URL}/api/oficios`);
       setOficios(response.data);
       setFilteredOficios(response.data);
     } catch (error) {
@@ -92,7 +95,7 @@ const Oficio: React.FC = () => {
   const handleSaveEdit = async () => {
     if (selectedOficio) {
       try {
-        await axios.put(`http://localhost:3001/api/oficios/${selectedOficio.id}`, selectedOficio);
+        await axios.put(`${API_URL}/api/oficios/${selectedOficio.id}`, selectedOficio);
         alert('Ofício atualizado com sucesso!');
         fetchOficios();
         handleCloseEditDialog();
@@ -178,80 +181,78 @@ const Oficio: React.FC = () => {
         </Table>
       </TableContainer>
       <Dialog
-  open={openEditDialog}
-  onClose={handleCloseEditDialog}
-  aria-labelledby="edit-oficio-title"
->
-  <DialogTitle id="edit-oficio-title">Editar Ofício</DialogTitle>
-  <DialogContent>
-    <TextField
-      label="Ano"
-      value={selectedOficio?.ano || ''}
-      onChange={(e) =>
-        setSelectedOficio({ ...selectedOficio, ano: e.target.value } as Oficio)
-      }
-      fullWidth
-      margin="normal"
-    />
-    <TextField
-      label="Remetente"
-      value={selectedOficio?.remetente || ''}
-      onChange={(e) =>
-        setSelectedOficio({ ...selectedOficio, remetente: e.target.value } as Oficio)
-      }
-      fullWidth
-      margin="normal"
-    />
-    <TextField
-      label="Destinatário"
-      value={selectedOficio?.destinatario || ''}
-      onChange={(e) =>
-        setSelectedOficio({ ...selectedOficio, destinatario: e.target.value } as Oficio)
-      }
-      fullWidth
-      margin="normal"
-    />
-    <TextField
-      label="Cidade"
-      value={selectedOficio?.cidade || ''}
-      onChange={(e) =>
-        setSelectedOficio({ ...selectedOficio, cidade: e.target.value } as Oficio)
-      }
-      fullWidth
-      margin="normal"
-    />
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={selectedOficio?.utilizado || false}
-          onChange={(e) =>
-            setSelectedOficio({ ...selectedOficio, utilizado: e.target.checked } as Oficio)
-          }
-        />
-      }
-      label="Utilizado"
-      style={{ marginTop: '10px' }}
-    />
-    <TextField
-      label="Descrição"
-      placeholder="Digite a descrição"
-      value={selectedOficio?.descricao || ''}
-      onChange={(e) =>
-        setSelectedOficio({ ...selectedOficio, descricao: e.target.value } as Oficio)
-      }
-      fullWidth
-      margin="normal"
-    />
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleCloseEditDialog} color="primary">
-      Cancelar
-    </Button>
-    <Button onClick={handleSaveEdit} color="primary">
-      Salvar
-    </Button>
-  </DialogActions>
-</Dialog>
+        open={openEditDialog}
+        onClose={handleCloseEditDialog}
+        aria-labelledby="edit-oficio-title"
+      >
+        <DialogTitle id="edit-oficio-title">Editar Ofício</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Ano"
+            value={selectedOficio?.ano || ''}
+            onChange={(e) =>
+              setSelectedOficio({ ...selectedOficio, ano: e.target.value } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Remetente"
+            value={selectedOficio?.remetente || ''}
+            onChange={(e) =>
+              setSelectedOficio({ ...selectedOficio, remetente: e.target.value } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Destinatário"
+            value={selectedOficio?.destinatario || ''}
+            onChange={(e) =>
+              setSelectedOficio({ ...selectedOficio, destinatario: e.target.value } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="Cidade"
+            value={selectedOficio?.cidade || ''}
+            onChange={(e) =>
+              setSelectedOficio({ ...selectedOficio, cidade: e.target.value } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={selectedOficio?.utilizado || false}
+                onChange={(e) =>
+                  setSelectedOficio({ ...selectedOficio, utilizado: e.target.checked } as Oficio)
+                }
+              />
+            }
+            label="Utilizado"
+          />
+          <TextField
+            label="Descrição"
+            value={selectedOficio?.descricao || ''}
+            onChange={(e) =>
+              setSelectedOficio({ ...selectedOficio, descricao: e.target.value } as Oficio)
+            }
+            fullWidth
+            margin="normal"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog} color="primary">
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveEdit} color="primary">
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

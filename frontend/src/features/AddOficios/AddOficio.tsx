@@ -21,7 +21,7 @@ const AddOficio: React.FC = () => {
   const [destinatario, setDestinatario] = useState<string>('');
   const [cidade, setCidade] = useState<string>('');
   const [utilizado, setUtilizado] = useState<boolean>(false);
-  const [descricao, setDescricao] = useState<string>(''); // Alterado para descricao
+  const [descricao, setDescricao] = useState<string>('');
 
   const handleAddOficio = async () => {
     if (!ano || !remetente || !destinatario || !cidade) {
@@ -30,14 +30,17 @@ const AddOficio: React.FC = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3001/api/oficios', {
-        ano,
-        remetente,
-        destinatario,
-        cidade,
-        utilizado,
-        descricao, // Enviando descricao
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/oficios`, // Usando a variável de ambiente aqui
+        {
+          ano,
+          remetente,
+          destinatario,
+          cidade,
+          utilizado,
+          descricao,
+        }
+      );
 
       if (response.status === 201) {
         alert('Ofício adicionado com sucesso!');
@@ -46,7 +49,7 @@ const AddOficio: React.FC = () => {
         setDestinatario('');
         setCidade('');
         setUtilizado(false);
-        setDescricao(''); // Resetando descricao
+        setDescricao('');
       }
     } catch (error) {
       console.error('Erro ao adicionar o ofício:', error);
