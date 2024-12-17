@@ -5,14 +5,14 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001; // Adicionando PORT corretamente
 
 const pool = new Pool({
-  user: 'adley',
-  host: 'localhost',
-  database: 'oficios_db',
-  password: '123456',
-  port: 5432,
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  port: process.env.PGPORT,
 });
 
 app.use(cors());
