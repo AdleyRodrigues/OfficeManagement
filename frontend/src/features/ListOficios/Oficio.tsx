@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 import './Oficio.css';
+import { useNavigate } from 'react-router-dom';
 
 interface Oficio {
   id: number;
@@ -38,6 +39,8 @@ interface Oficio {
 }
 
 const Oficio: React.FC = () => {
+  const navigate = useNavigate();
+
   const [oficios, setOficios] = useState<Oficio[]>([]);
   const [filteredOficios, setFilteredOficios] = useState<Oficio[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -141,7 +144,7 @@ const Oficio: React.FC = () => {
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
-          href="/add"
+          onClick={() => navigate('/add')}
         >
           Adicionar Ofício
         </Button>
