@@ -47,7 +47,7 @@ const Oficio: React.FC = () => {
 
   // Substituir URL hardcoded pelo valor de ambiente
   const API_URL = import.meta.env.VITE_API_URL;
-
+  //teste
   const fetchOficios = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/oficios`);
