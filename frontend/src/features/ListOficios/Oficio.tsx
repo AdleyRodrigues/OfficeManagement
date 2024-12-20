@@ -20,6 +20,8 @@ import {
   DialogTitle,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
+  Box,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
@@ -47,11 +49,12 @@ const Oficio: React.FC = () => {
   const [yearFilter, setYearFilter] = useState<string>('');
   const [openEditDialog, setOpenEditDialog] = useState<boolean>(false);
   const [selectedOficio, setSelectedOficio] = useState<Oficio | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // Novo estado para loading
 
-  // Substituir URL hardcoded pelo valor de ambiente
   const API_URL = import.meta.env.VITE_API_URL;
-  //teste
+
   const fetchOficios = async () => {
+    setLoading(true); // Ativa o loading
     try {
       const response = await axios.get(`${API_URL}/api/oficios`);
       setOficios(response.data);
@@ -59,6 +62,8 @@ const Oficio: React.FC = () => {
     } catch (error) {
       console.error('Erro ao buscar os ofícios:', error);
       alert('Erro ao buscar os ofícios.');
+    } finally {
+      setLoading(false); // Desativa o loading
     }
   };
 
@@ -149,40 +154,46 @@ const Oficio: React.FC = () => {
           Adicionar Ofício
         </Button>
       </div>
-      <TableContainer component={Paper} className="table-container">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Número do Ofício</TableCell>
-              <TableCell>Ano</TableCell>
-              <TableCell>Remetente</TableCell>
-              <TableCell>Destinatário</TableCell>
-              <TableCell>Cidade</TableCell>
-              <TableCell>Utilizado</TableCell>
-              <TableCell>Descrição</TableCell>
-              <TableCell>Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredOficios.map((oficio) => (
-              <TableRow key={oficio.id}>
-                <TableCell>{oficio.numero}</TableCell>
-                <TableCell>{oficio.ano}</TableCell>
-                <TableCell>{oficio.remetente}</TableCell>
-                <TableCell>{oficio.destinatario}</TableCell>
-                <TableCell>{oficio.cidade}</TableCell>
-                <TableCell>{oficio.utilizado ? 'Sim' : 'Não'}</TableCell>
-                <TableCell>{oficio.descricao || ''}</TableCell>
-                <TableCell>
-                  <IconButton color="primary" onClick={() => handleEdit(oficio)}>
-                    <EditIcon />
-                  </IconButton>
-                </TableCell>
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" height="100px">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper} className="table-container">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Número do Ofício</TableCell>
+                <TableCell>Ano</TableCell>
+                <TableCell>Remetente</TableCell>
+                <TableCell>Destinatário</TableCell>
+                <TableCell>Cidade</TableCell>
+                <TableCell>Utilizado</TableCell>
+                <TableCell>Descrição</TableCell>
+                <TableCell>Ações</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {filteredOficios.map((oficio) => (
+                <TableRow key={oficio.id}>
+                  <TableCell>{oficio.numero}</TableCell>
+                  <TableCell>{oficio.ano}</TableCell>
+                  <TableCell>{oficio.remetente}</TableCell>
+                  <TableCell>{oficio.destinatario}</TableCell>
+                  <TableCell>{oficio.cidade}</TableCell>
+                  <TableCell>{oficio.utilizado ? 'Sim' : 'Não'}</TableCell>
+                  <TableCell>{oficio.descricao || ''}</TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => handleEdit(oficio)}>
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
       <Dialog
         open={openEditDialog}
         onClose={handleCloseEditDialog}
