@@ -250,21 +250,70 @@ app.get('/api/oficios', async (req, res) => {
 
 // Endpoint para adicionar um novo ofício
 app.post('/api/oficios', async (req, res) => {
-  const { numero, ano, remetente, destinatario, cidade, utilizado, descricao } = req.body;
+  const { remetente, destinatario, cidade, utilizado = false, descricao = '' } = req.body;
+
+  // Validar campos obrigatórios
+  if (!remetente || !destinatario || !cidade) {
+    return res.status(400).json({
+      error: 'Campos obrigatórios faltando',
+      details: 'Remetente, destinatário e cidade são obrigatórios'
+    });
+  }
+
+  const client = await pool.connect();
 
   try {
-    const result = await pool.query(
-      'INSERT INTO oficios (numero, ano, remetente, destinatario, cidade, utilizado, descricao) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [numero, ano, remetente, destinatario, cidade, utilizado, descricao]
-    );
+    // Iniciar transação
+    await client.query('BEGIN');
+
+    // Inserir o novo ofício - o ID será gerado automaticamente e será igual ao número
+    const insertQuery = `
+      INSERT INTO oficios (
+        numero, 
+        ano, 
+        remetente, 
+        destinatario, 
+        cidade, 
+        utilizado, 
+        descricao,
+        data
+      ) 
+      VALUES (
+        (SELECT COALESCE(MAX(id), 0) + 1 FROM oficios),
+        $1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP
+      ) 
+      RETURNING *
+    `;
+
+    const currentYear = new Date().getFullYear();
+    const insertValues = [
+      currentYear,
+      remetente,
+      destinatario,
+      cidade,
+      utilizado,
+      descricao || ''
+    ];
+
+    const result = await client.query(insertQuery, insertValues);
+
+    // Commit da transação
+    await client.query('COMMIT');
 
     // Invalidar cache após modificação
     cache.invalidatePrefix('oficios_');
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    // Rollback em caso de erro
+    await client.query('ROLLBACK');
     console.error('Erro ao inserir ofício:', err);
-    res.status(500).json({ error: 'Erro ao inserir ofício', details: err.message });
+    res.status(500).json({
+      error: 'Erro ao inserir ofício',
+      details: err.message
+    });
+  } finally {
+    client.release();
   }
 });
 

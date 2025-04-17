@@ -9,6 +9,8 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
+    FormControlLabel,
+    Checkbox,
     Grid,
     InputLabel,
     MenuItem,
@@ -40,9 +42,8 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
         remetente: '',
         destinatario: '',
         cidade: 'Crateús',
-        assunto: '',
         descricao: '',
-        dataEnvio: ''
+        utilizado: false
     });
 
     // Atualiza o estado interno quando a prop 'open' mudar
@@ -70,9 +71,8 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
             remetente: '',
             destinatario: '',
             cidade: 'Crateús',
-            assunto: '',
             descricao: '',
-            dataEnvio: ''
+            utilizado: false
         });
         setError(null);
     };
@@ -87,10 +87,17 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
         });
     };
 
+    const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+            ...formData,
+            utilizado: event.target.checked,
+        });
+    };
+
     const handleSubmit = async () => {
         try {
             // Validar campos obrigatórios
-            if (!formData.ano || !formData.remetente || !formData.destinatario || !formData.assunto) {
+            if (!formData.ano || !formData.remetente || !formData.destinatario) {
                 setError('Por favor, preencha todos os campos obrigatórios.');
                 return;
             }
@@ -101,9 +108,7 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
                 destinatario: formData.destinatario,
                 cidade: formData.cidade,
                 descricao: formData.descricao || '',
-                assunto: formData.assunto,
-                dataEnvio: formData.dataEnvio || null,
-                utilizado: false
+                utilizado: formData.utilizado
             };
 
             await addOficio(novoOficio);
@@ -132,8 +137,6 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
 
     // Lista de cidades
     const cidadesOptions = ['Crateús', 'Nova Russas', 'Ipueiras'];
-    // Anos para seleção (últimos 5 anos)
-    const yearOptions = Array.from({ length: 5 }, (_, i) => (currentYear - 2 + i).toString());
 
     // Se o componente for usado com botão interno
     if (open === undefined) {
@@ -242,21 +245,13 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
 
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                            <InputLabel id="ano-label">Ano *</InputLabel>
-                            <Select
-                                labelId="ano-label"
-                                value={formData.ano}
-                                label="Ano *"
-                                onChange={handleChange('ano') as (event: SelectChangeEvent) => void}
-                            >
-                                {yearOptions.map((year) => (
-                                    <MenuItem key={year} value={year}>
-                                        {year}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <TextField
+                            label="Ano"
+                            value={formData.ano}
+                            disabled
+                            fullWidth
+                            required
+                        />
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <TextField
@@ -293,25 +288,6 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
                             </Select>
                         </FormControl>
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                        <TextField
-                            label="Data de Envio"
-                            type="date"
-                            value={formData.dataEnvio}
-                            onChange={handleChange('dataEnvio')}
-                            fullWidth
-                            InputLabelProps={{ shrink: true }}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            label="Assunto"
-                            value={formData.assunto}
-                            onChange={handleChange('assunto')}
-                            fullWidth
-                            required
-                        />
-                    </Grid>
                     <Grid item xs={12}>
                         <TextField
                             label="Descrição"
@@ -320,6 +296,18 @@ const AdicionarOficioModal: React.FC<AdicionarOficioModalProps> = ({ open, onClo
                             fullWidth
                             multiline
                             rows={4}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={formData.utilizado}
+                                    onChange={handleCheckboxChange}
+                                    color="primary"
+                                />
+                            }
+                            label="Ofício Utilizado"
                         />
                     </Grid>
                 </Grid>
