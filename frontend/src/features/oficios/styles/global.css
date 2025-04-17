@@ -1,0 +1,83 @@
+/* Importando a fonte Roboto para garantir consistência */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+/* Container do formulário */
+.form-container {
+    background-color: #fff;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.3s ease;
+}
+
+.form-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Estilo para o título */
+.form-title {
+    color: #1976d2;
+    font-weight: 700 !important;
+    margin-bottom: 0 !important;
+    position: relative;
+    flex-grow: 1;
+}
+
+/* Utilizando o mesmo container que a listagem */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Animação para mensagens de sucesso/erro */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-message {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .container {
+        padding: 12px;
+    }
+
+    .form-container {
+        padding: 16px !important;
+    }
+
+    .form-title {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* Estilo para os campos de seleção */
+.select-field label {
+    background-color: white;
+    padding: 0 4px;
+}
+
+/* Estilo para o campo de descrição */
+.description-field textarea {
+    min-height: 100px;
+    font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* Efeitos visuais para feedback */
+.form-success-animation {
+    transition: all 0.5s ease;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 200, 83, 0.2) !important;
+}
