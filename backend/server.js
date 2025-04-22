@@ -90,7 +90,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Middleware para CORS
-app.use(cors());
+app.use(cors({
+  origin: ['http://office-management-three.vercel.app', 'https://office-management-three.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 
 // Middleware para parse de JSON
 app.use(express.json());
